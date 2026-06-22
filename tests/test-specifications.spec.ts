@@ -2,7 +2,7 @@ import { test, expect } from "../fixtures";
 import { User, Routes, SortOption } from "../utils/types";
 
 // Shared checkout data used across checkout tests
-
+const CHECKOUT_INFO = { firstName: "Kevin", lastName: "Nguyen", postalCode: "12345" };
 const BACKPACK = "Sauce Labs Backpack";
 const BIKE_LIGHT = "Sauce Labs Bike Light";
 
@@ -160,6 +160,170 @@ test.describe("Products", () => {
     await productDetailPage.expectProductPrice(gridPrice);
     await expect(productDetailPage.productDescription).toHaveText(gridDesc);
     await productDetailPage.expectImageVisible();
+  });
+
+});
+
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Cart
+// ─────────────────────────────────────────────────────────────────────────────
+
+test.describe("Cart", () => {
+
+  // TC-CART-01
+  test("TC-CART-01 | Add items to the shopping cart", async ({
+    authenticatedPage: inventoryPage,
+  }) => {
+    await inventoryPage.addItemToCart(BACKPACK);
+
+    // Button text must change to "Remove"
+    await inventoryPage.expectRemoveButtonVisible(BACKPACK);
+
+    // Badge must increment to 1
+    await inventoryPage.expectCartBadgeCount(1);
+  });
+
+  // TC-CART-02
+  test("TC-CART-02 | Remove items from shopping cart at multiple entry points", async ({
+    authenticatedPage: inventoryPage,
+    cartPage,
+  }) => {
+    await inventoryPage.addItemToCart(BACKPACK);
+    await inventoryPage.addItemToCart(BIKE_LIGHT);
+
+    // Remove from grid
+    await inventoryPage.removeItemFromCart(BACKPACK);
+    await inventoryPage.expectAddToCartButtonVisible(BACKPACK);
+    await inventoryPage.expectCartBadgeCount(1);
+
+    // Remove from cart view
+    await inventoryPage.goToCart();
+    await cartPage.removeItem(BIKE_LIGHT);
+    await cartPage.expectCartToBeEmpty();
+    await cartPage.expectCartBadgeCount(0);
+  });
+
+  // TC-CART-03
+  test("TC-CART-03 | Cart persistence check across navigation flows", async ({
+    authenticatedPage: inventoryPage,
+    cartPage,
+    productDetailPage,
+  }) => {
+    await inventoryPage.addItemToCart(BACKPACK);
+    await inventoryPage.addItemToCart(BIKE_LIGHT);
+
+    // Step 1 – Open Cart, badge & items intact
+    await inventoryPage.goToCart();
+    await cartPage.expectItemCount(2);
+    await cartPage.expectCartBadgeCount(2);
+
+    // Step 2 – Continue Shopping, cart state preserved
+    await cartPage.continueShopping();
+    await inventoryPage.expectCartBadgeCount(2);
+
+    // Step 3 – Navigate to product detail, cart still intact
+    await inventoryPage.clickItemName(BACKPACK);
+    await productDetailPage.expectCartBadgeCount(2);
+  });
+
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Checkout
+// ─────────────────────────────────────────────────────────────────────────────
+
+test.describe("Checkout", () => {
+
+  // TC-CHKT-01
+  test("TC-CHKT-01 | Validation of empty input fields at Checkout Step One", async ({
+    authenticatedPage: inventoryPage,
+    cartPage,
+    checkoutStepOnePage,
+  }) => {
+    await inventoryPage.addItemToCart(BACKPACK);
+    await inventoryPage.goToCart();
+    await cartPage.proceedToCheckout();
+
+    // Leave all fields blank and click Continue
+    await checkoutStepOnePage.continue();
+    await checkoutStepOnePage.expectErrorMessage("Error: First Name is required");
+
+    // Form must stay on step one
+    await checkoutStepOnePage.expectToBeOnCheckoutStepOne();
+  });
+
+  // TC-CHKT-02
+  test("TC-CHKT-02 | Verify Tax and Price Summary Calculations at Checkout Step Two", async ({
+    authenticatedPage: inventoryPage,
+    cartPage,
+    checkoutStepOnePage,
+    checkoutStepTwoPage,
+  }) => {
+    // Capture grid price BEFORE navigating away — inventoryPage locators
+    // resolve against the live page object, which will change URL after checkout
+    const gridPriceText = await inventoryPage.getItemPrice(BACKPACK).innerText();
+    const gridPrice = parseFloat(gridPriceText.replace("$", ""));
+
+    await inventoryPage.addItemToCart(BACKPACK);
+    await inventoryPage.goToCart();
+    await cartPage.proceedToCheckout();
+    await checkoutStepOnePage.submitCheckoutInfo(CHECKOUT_INFO);
+
+    await checkoutStepTwoPage.expectToBeOnCheckoutStepTwo();
+    await checkoutStepTwoPage.expectSubtotalVisible();
+
+    // Grand Total must equal Item Total + Tax exactly
+    await checkoutStepTwoPage.expectTotalMatchesSubtotalPlusTax();
+
+    // Subtotal on step two must match the price shown on the inventory grid
+    const subtotal = await checkoutStepTwoPage.getSubtotal();
+    expect(subtotal).toBeCloseTo(gridPrice, 2);
+  });
+
+  // TC-CHKT-03
+  test("TC-CHKT-03 | Complete order transaction successfully", async ({
+    authenticatedPage: inventoryPage,
+    cartPage,
+    checkoutStepOnePage,
+    checkoutStepTwoPage,
+    checkoutCompletePage,
+  }) => {
+    await inventoryPage.addItemToCart(BACKPACK);
+    await inventoryPage.goToCart();
+    await cartPage.proceedToCheckout();
+    await checkoutStepOnePage.submitCheckoutInfo(CHECKOUT_INFO);
+    await checkoutStepTwoPage.finish();
+
+    // Confirmation screen must appear
+    await checkoutCompletePage.expectSuccessHeader();
+
+    // Cart badge must be cleared
+    await checkoutCompletePage.expectCartBadgeCount(0);
+  });
+
+  // TC-CHKT-04
+  test("TC-CHKT-04 | error_user cannot complete checkout", async ({
+    loginPage,
+    inventoryPage,
+    cartPage,
+    checkoutStepOnePage,
+    checkoutStepTwoPage,
+    page,
+  }) => {
+    await loginPage.goto();
+    await loginPage.loginAs(User.Error);
+    await inventoryPage.expectToBeOnInventoryPage();
+
+    await inventoryPage.addItemToCart(BACKPACK);
+    await inventoryPage.goToCart();
+    await cartPage.proceedToCheckout();
+    await checkoutStepOnePage.submitCheckoutInfo(CHECKOUT_INFO);
+    await checkoutStepTwoPage.finish();
+
+    // Must remain on step two — order does not complete
+    await expect(page).toHaveURL(new RegExp(Routes.CHECKOUT_STEP_TWO));
+    await checkoutStepTwoPage.expectFinishButtonVisible();
   });
 
 });
