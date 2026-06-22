@@ -327,3 +327,31 @@ test.describe("Checkout", () => {
   });
 
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Navigation
+// ─────────────────────────────────────────────────────────────────────────────
+
+test.describe("Navigation", () => {
+
+  // TC-NAVI-01
+  test("TC-NAVI-01 | Burger Menu control and Reset App State execution", async ({
+    authenticatedPage: inventoryPage,
+  }) => {
+    await inventoryPage.addItemToCart(BACKPACK);
+    await inventoryPage.addItemToCart(BIKE_LIGHT);
+    await inventoryPage.expectCartBadgeCount(2);
+
+    // Reset App State closes the menu automatically — open menu, click Reset,
+    // then navigate back to inventory so the DOM reflects the cleared state
+    await inventoryPage.openMenu();
+    await inventoryPage.resetAppStateLink.click();
+    await inventoryPage.goto();
+
+    // Cart badge must be gone and both buttons back to "Add to cart"
+    await inventoryPage.expectCartBadgeCount(0);
+    await inventoryPage.expectAddToCartButtonVisible(BACKPACK);
+    await inventoryPage.expectAddToCartButtonVisible(BIKE_LIGHT);
+  });
+
+});
