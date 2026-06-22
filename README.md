@@ -1,5 +1,66 @@
 # Saucedemo_Test_with_Playwright
 # Playwright E2E Test Suite
+(DEUTSCH)
+(for English - see below)
+
+Diese **Playwright** E2E-Testsuite bietet eine vollständige End-to-End-Testautomatisierung für die Webanwendung saucedemo.com. Das Projekt ist mit **TypeScript** aufgebaut und implementiert das **Page Object Model** (POM) sowie Custom Fixtures für eine modulare und wartbare Testarchitektur. Die Testfälle decken kritische Kernfunktionen ab – darunter Authentifizierung, Produktkatalog, Warenkorb-Verwaltung, Checkout-Abläufe und Performance-Benchmarks – validiert über verschiedene Benutzerprofile hinweg.
+
+---
+
+## Tech stack
+
+| | |
+|---|---|
+| [Playwright](https://playwright.dev) v1.61 | Browser-Automatisierung & Test-Runner |
+| TypeScript | Typsichere Testerstellung |
+| Page Object Model | Abstraktionsschicht zur Trennung von UI-Selektoren und Testlogik |
+| Custom fixtures | Dependency Injection von fertig konfigurierten Page Objects via `test.extend()` |
+
+---
+
+## Projektstruktur
+
+```
+├── pages/
+│   ├── BasePage.ts             # Gemeinsames Burger-Menü, Warenkorb-Badge, Logout
+│   ├── LoginPage.ts
+│   ├── InventoryPage.ts
+│   ├── ProductDetailPage.ts
+│   ├── CartPage.ts
+│   ├── CheckoutStepOnePage.ts
+│   ├── CheckoutStepTwoPage.ts
+│   ├── CheckoutCompletePage.ts
+│   └── index.ts
+│
+├── fixtures/
+│   └── index.ts               # Custom-Testobjekt mit allen injizierten POM-Fixtures
+│
+├── utils/
+│   └── types.ts               # User-Enum, SortOption-Enum, Routen, Interfaces
+│
+└── tests/
+    └── test-specifications.spec.ts   # 19 spezifikationsgesteuerte Testfälle (TC-AUTH bis TC-PERF)
+```
+
+---
+
+## Erste Schritte
+
+```bash
+npm install
+npx playwright install    # Browser herunterladen
+npx playwright test       # Alle Tests ausführen
+npx playwright show-report
+```
+
+---
+
+## Highlights der Konfiguration
+
+`playwright.config.ts` setzt `trace: "on-first-retry"`, `screenshot: "only-on-failure"`, und `video: "retain-on-failure"` — jeder Fehler erzeugt ein vollständiges Diagnosepaket, ohne erfolgreiche Testläufe zu verlangsamen. Der HTML-Bericht öffnet sich nach jedem Durchlauf automatisch. (`open: 'always'`).
+
+---
+(ENGLISH)
 
 End-to-end test automation for [saucedemo.com](https://www.saucedemo.com), built with **Playwright** and **TypeScript** following the **Page Object Model** pattern. Tests are driven by a structured test specification that covers authentication, product catalogue, cart management, checkout flow, navigation, and performance across multiple user profiles.
 
@@ -135,15 +196,7 @@ test("adds item to cart", async ({ authenticatedPage: inventoryPage }) => {
 });
 ```
 
-### Typed constants — no magic strings
 
-User credentials, sort options, and routes are defined as TypeScript enums and `as const` objects. Typos become compile-time errors rather than silent runtime failures.
-
-```typescript
-await loginPage.loginAs(User.Standard);          // not "standard_user"
-await inventoryPage.sortBy(SortOption.PriceHighLow);  // not "hilo"
-await page.goto(Routes.CART);                    // not "/cart.html"
-```
 
 ### Assertions belong in the POM
 
