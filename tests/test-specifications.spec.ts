@@ -353,5 +353,28 @@ test.describe("Navigation", () => {
     await inventoryPage.expectAddToCartButtonVisible(BACKPACK);
     await inventoryPage.expectAddToCartButtonVisible(BIKE_LIGHT);
   });
+});
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Performance
+// ─────────────────────────────────────────────────────────────────────────────
+
+test.describe("Performance", () => {
+  // TC-PERF-01
+  test("TC-PERF-01 | Response time and loading latency threshold benchmark", async ({
+    loginPage,
+    inventoryPage,
+    page,
+  }) => {
+    await loginPage.goto();
+
+    const start = Date.now();
+    await loginPage.loginAs(User.PerformanceGlitch);
+    await inventoryPage.expectToBeOnInventoryPage();
+    const elapsed = Date.now() - start;
+
+    // performance_glitch_user has a ~5 s artificial delay; cap at 10 s
+    expect(elapsed).toBeLessThan(10_000);
+    await expect(page).toHaveURL(new RegExp(Routes.INVENTORY));
+  });
 });
