@@ -41,6 +41,72 @@ Diese **Playwright** E2E-Testsuite bietet eine vollständige End-to-End-Testauto
 └── tests/
     └── test-specifications.spec.ts   # 19 spezifikationsgesteuerte Testfälle (TC-AUTH bis TC-PERF)
 ```
+---
+## Testausführungs-Dashboard
+
+Ergebnisse des aktuellen Testlaufs, direkt auf das Testspezifikationsdokument abgebildet:
+
+| Module | Test Cases | Status |
+|---|---|---|
+| Authentication | TC-AUTH-01 → TC-AUTH-06 | ✅ All pass |
+| Products | TC-PROD-01 → TC-PROD-04 | ✅ All pass |
+| Cart | TC-CART-01 → TC-CART-03 | ✅ All pass |
+| Checkout | TC-CHKT-01 → TC-CHKT-04 | ✅ All pass |
+| Navigation | TC-NAVI-01 | ✅ All pass |
+| Performance | TC-PERF-01 | ✅ All pass |
+
+---
+
+## Testfälle
+
+### Authentication
+
+| ID | Title | Priority | User |
+|---|---|---|---|
+| TC-AUTH-01 | Successful login with standard baseline account | High | standard_user |
+| TC-AUTH-02 | Failed login — locked out account | High | locked_out_user |
+| TC-AUTH-03 | Failed login — invalid password | Medium | standard_user |
+| TC-AUTH-04 | Failed login — blank required fields | Medium | standard_user |
+| TC-AUTH-05 | Successful logout and session termination | High | standard_user |
+| TC-AUTH-06 | Security: direct URL access prevention without session | High | — |
+
+### Products
+
+| ID | Title | Priority | User |
+|---|---|---|---|
+| TC-PROD-01 | Standard grid layout and product catalog display | High | standard_user |
+| TC-PROD-02 | Visual/image anomalies for problem accounts | Medium | problem_user |
+| TC-PROD-03 | Product catalog sorting options (all 4 orders) | Medium | standard_user |
+| TC-PROD-04 | Navigate to individual product detail view | Low | standard_user |
+
+### Cart
+
+| ID | Title | Priority | User |
+|---|---|---|---|
+| TC-CART-01 | Add items to the shopping cart | High | standard_user |
+| TC-CART-02 | Remove items at multiple entry points (grid & cart view) | High | standard_user |
+| TC-CART-03 | Cart persistence across navigation flows | Medium | standard_user |
+
+### Checkout
+
+| ID | Title | Priority | User |
+|---|---|---|---|
+| TC-CHKT-01 | Validation of empty input fields at step one | High | standard_user |
+| TC-CHKT-02 | Tax and price summary calculation accuracy at step two | High | standard_user |
+| TC-CHKT-03 | Complete order transaction successfully | High | standard_user |
+| TC-CHKT-04 | error_user cannot complete checkout | Low | error_user |
+
+### Navigation
+
+| ID | Title | Priority | User |
+|---|---|---|---|
+| TC-NAVI-01 | Burger menu and Reset App State execution | Medium | standard_user |
+
+### Performance
+
+| ID | Title | Priority | User |
+|---|---|---|---|
+| TC-PERF-01 | Login latency benchmark for performance_glitch_user | Medium | performance_glitch_user |
 
 ---
 
