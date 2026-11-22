@@ -7,11 +7,21 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
-  reporter: [["html", 
-    { 
-      outputFolder: 'playwright-report', // Directory where the report will be saved
-      open: 'always'                 // Options: 'always', 'never', or 'on-failure'
-    }],
+  // reporter: [["html", 
+  //   { 
+  //     outputFolder: 'playwright-report', // Directory where the report will be saved
+  //     open: 'always'                 // Options: 'always', 'never', or 'on-failure'
+  //   }],
+  // ],
+  reporter: [
+    [
+      "html",
+      {
+        outputFolder: "playwright-report",
+        open: process.env.CI ? "never" : "on-failure",
+      },
+    ],
+    ...(process.env.CI ? [["github"] as ["github"]] : []),
   ],
 
   use: {
